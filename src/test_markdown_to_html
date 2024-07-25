@@ -1,0 +1,82 @@
+import markdown_to_html as mdh
+from textnode import TextNode
+import unittest
+
+class TestTextNodeSplitter(unittest.TestCase):
+    def test_split_bold(self):
+        a = mdh.split_delimited_nodes([TextNode("This is text with a **bolded phrase** in the middle and at the end a **bolded phrase**", "text")],"**", "bold")
+        self.assertEqual(a, [TextNode("This is text with a ", "text"), TextNode("bolded phrase", "bold"), TextNode(" in the middle and at the end a ", "text"), TextNode("bolded phrase", "bold")])
+    def test_split_italic(self):
+        a = mdh.split_delimited_nodes([TextNode("This is text with a *italicized phrase* in the middle and at the end a *italicized phrase*", "text")],"*", "italic")
+        self.assertEqual(a, [TextNode("This is text with a ", "text"), TextNode("italicized phrase", "italic"), TextNode(" in the middle and at the end a ", "text"), TextNode("italicized phrase", "italic")])
+    def test_split_code(self):
+        a = mdh.split_delimited_nodes([TextNode("This is text with a `code` in the middle and at the end a `code`", "text")],"`", "code")
+        self.assertEqual(a, [TextNode("This is text with a ", "text"), TextNode("code", "code"), TextNode(" in the middle and at the end a ", "text"), TextNode("code", "code")])
+    def test_exception(self):
+        with self.assertRaises(Exception) as err:
+            mdh.split_delimited_nodes([TextNode("This is text with a `code` in the middle and at the end a `code", "text")],"`", "code")
+        self.assertEqual(str(err.exception), "Invalid markdown syntax")
+
+class TestTextToNode(unittest.TestCase):
+    def test_text(self):
+        text_node = TextNode("Text", "text")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "Text")
+    def test_bold(self):
+        text_node = TextNode("Bold text", "bold")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "<b>Bold text</b>")
+    def test_italic(self):
+        text_node = TextNode("Italic text", "italic")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "<i>Italic text</i>")
+    def test_link(self):
+        text_node = TextNode("Link text", "link", "https://www.google.com")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "<a href=\"https://www.google.com\">Link text</a>")
+    def test_code(self):
+        text_node = TextNode("Code text", "code")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "<code>Code text</code>")
+    def test_image(self):
+        text_node = TextNode("Image text", "image", "https://www.google.com")
+        html_node = mdh.text_node_to_html_node(text_node)
+        self.assertEqual(html_node.to_html(), "<img src=\"https://www.google.com\" alt=\"Image text\">")
+        
+class TestExtractLinks(unittest.TestCase):
+    def test_extract_links(self):
+        text = "This text contains a link to [https://www.google.com](https://www.google.com) and another link to [https://www.boot.dev](https://www.boot.dev)"
+        links = mdh.extract_links(text)
+        self.assertEqual(links, [("https://www.google.com", "https://www.boot.dev"), ("https://www.boot.dev", "https://www.google.com")])
+
+class TestExtractImages(unittest.TestCase):
+    def test_extract_images(self):
+        text = "This text contains an image to ![https://www.google.com](https://www.google.com) and another image to ![https://www.boot.dev](https://www.boot.dev)"
+        images = mdh.extract_images(text)
+        self.assertEqual(images, [("https://www.google.com", "https://www.boot.dev"), ("https://www.boot.dev", "https://www.google.com")])
+    
+class TestLinkNodeSplitter(unittest.TestCase):
+    def test_link_node_splitter(self):
+        node = TextNode(
+                        "This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com/@bootdotdev)", "text"
+                        )
+        new_nodes = mdh.split_nodes_link([node])
+        self.assertEqual(new_nodes, [
+     TextNode("This is text with a link ", "text"),
+     TextNode("to boot dev", "link", "https://www.boot.dev"),
+     TextNode(" and ", "text"),
+     TextNode(
+         "to youtube", "link", "https://www.youtube.com/@bootdotdev"
+     ),
+ ])
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+
+
+
+
+
+

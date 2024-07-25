@@ -1,17 +1,7 @@
 
-from htmlnode import LeafNode
-from htmlnode import ParentNode
+from htmlnode import markdown_to_text_nodes
+
+from textnode import TextNode
 def main():
-
-    node = ParentNode(
-    "p",
-    [
-        LeafNode("b", "Bold text"),
-        LeafNode(None, "Normal text"),
-        LeafNode("i", "italic text"),
-        LeafNode(None, "Normal text"),
-    ],
-)
-
-    print(node.to_html())
+    print(markdown_to_text_nodes("This is **text** with an *italic* word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"))
 main()
